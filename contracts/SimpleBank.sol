@@ -26,14 +26,14 @@ contract SimpleBank {
     //
     
     /* Add an argument for this event, an accountAddress */
-    event LogEnrolled(address _accountAddress);
+    event LogEnrolled(address accountAddress);
 
     /* Add 2 arguments for this event, an accountAddress and an amount */
-    event LogDepositMade(address _accountAddress, uint amount);
+    event LogDepositMade(address accountAddress, uint amount);
 
     /* Create an event called LogWithdrawal */
 
-    event LogWithdrawlMade(address _accountAddress, uint amount)
+    event LogWithdrawal(address accountAddress, uint withdrawAmount, uint newBalance);
     /* Add 3 arguments for this event, an accountAddress, withdrawAmount and a newBalance */
 
 
@@ -60,9 +60,9 @@ contract SimpleBank {
     /// @return The balance of the user
     // A SPECIAL KEYWORD prevents function from editing state variables;
     // allows function to run locally/off blockchain
-    function getBalance(address _address) public view returns (uint) {
+    function getBalance() public view returns (uint) {
         /* Get the balance of the sender of this transaction */
-        return balances[_address];
+        return balances[msg.sender];
     }
 
     /// @notice Enroll a customer with the bank
@@ -89,6 +89,7 @@ contract SimpleBank {
     function deposit() public  payable returns  (uint) {
         /* Add the amount to the user's balance, call the event associated with a deposit,
           then return the balance of the user */
+          require(enrolled[msg.sender] );
           balances[msg.sender] += msg.value;
           emit LogDepositMade(msg.sender , msg.value);
           return balances[msg.sender];
@@ -105,6 +106,11 @@ contract SimpleBank {
            Subtract the amount from the sender's balance, and try to send that amount of ether
            to the user attempting to withdraw. 
            return the user's balance.*/
+           require(balances[msg.sender]>= withdrawAmount);
+           balances[msg.sender] -= withdrawAmount;
+           emit LogWithdrawal(msg.sender, withdrawAmount, balances[msg.sender]);
+           msg.sender.transfer(withdrawAmount);
+           return balances[msg.sender];
     }
 
 }
